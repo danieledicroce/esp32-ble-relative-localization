@@ -202,6 +202,17 @@ void setupObserver() {
   pScan->start(0, nullptr, false);
 }
 
+void printPositionsAsJSON() {
+  Serial.print("{\"nodes\":[");
+  for (uint8_t i = 0; i < 3; i++) {
+    Serial.printf("{\"id\":%d,\"x\":%.2f,\"y\":%.2f}", i, nodeState.fixedNodes.posX[i], nodeState.fixedNodes.posY[i]);
+    if (i < 2) Serial.print(",");
+  }
+  Serial.print("],\"device\":{");
+  Serial.printf("\"x\":%.2f,\"y\":%.2f", nodeState.device.x, nodeState.device.y);
+  Serial.println("}}");
+}
+
 void setup() {
   Serial.begin(115200);
   BLEDevice::init("ESP32_NODE");
@@ -219,4 +230,5 @@ void loop() {
   computePositions();
   computeDevicePosition();
   updateAdvertisingPayload();
+  printPositionsAsJSON();
 }
