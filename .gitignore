@@ -15,6 +15,15 @@ build/
 .clang_complete
 .gcc-flags.json
 
+# --- Python ---
+.venv/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+
 # --- Editor & IDE metadata ---
 .vscode/*
 !.vscode/settings.json
