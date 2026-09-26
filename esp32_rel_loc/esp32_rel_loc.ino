@@ -5,25 +5,53 @@
 
 #define NODE_ID 0  // 0, 1 o 2 a seconda della scheda
 
-#define RSSI_AT_1M -56.0       // RSSI(d0), da ricalibrare per ogni ambiente
-#define PATH_LOSS_EXPONENT 3.0 // n, da ricalibrare per ogni ambiente
+#define RSSI_AT_1M -56.0        // RSSI(d0), da ricalibrare per ogni ambiente
+#define PATH_LOSS_EXPONENT 3.0  // n, idem
+#define PROCESS_NOISE 0.5       // Q, idem
+#define MEASUREMENT_NOISE 10.0  // R, idem
+
+struct KalmanState {
+  float estimate = 0.0;
+  float errorCovariance = 1.0;
+  bool initialized = false;
+};
 
 struct NodeState {
   float x = 0.0;
   float y = 0.0;
-  float distances[3] = {0.0, 0.0, 0.0};  // indicizzato per Node ID
+  float distances[3] = {0.0, 0.0, 0.0};
+  KalmanState kalman[3];
 };
 
 NodeState nodeState;
+
 
 float distanceFromRSSI(int rssi) {
   return pow(10.0, (RSSI_AT_1M - rssi) / (10.0 * PATH_LOSS_EXPONENT));
 }
 
+int kalmanFilterRSSI(uint8_t nodeId, int measuredRSSI) {
+  if (nodeId >= 3) return measuredRSSI;
+  KalmanState &state = nodeState.kalman[nodeId];
+  if (!state.initialized) {
+    state.estimate = measuredRSSI;
+    state.initialized = true;
+    return measuredRSSI;
+  }
+  float predictedEstimate = state.estimate;
+  float predictedCovariance = state.errorCovariance + PROCESS_NOISE;
+  float kalmanGain = predictedCovariance / (predictedCovariance + MEASUREMENT_NOISE);
+  state.estimate = predictedEstimate + kalmanGain * (measuredRSSI - predictedEstimate);
+  state.errorCovariance = (1.0 - kalmanGain) * predictedCovariance;
+  return (int)round(state.estimate);
+}
+
 void handleRSSIReading(uint8_t nodeId, int rssi) {
   if (nodeId < 3) {
-    nodeState.distances[nodeId] = distanceFromRSSI(rssi);
-    Serial.printf("[Node %d] RSSI: %d -> Dist: %.2f\n", nodeId, rssi, nodeState.distances[nodeId]);
+    int filteredRSSI = kalmanFilterRSSI(nodeId, rssi);
+    nodeState.distances[nodeId] = distanceFromRSSI(filteredRSSI);
+    Serial.printf("[Node %d] Raw RSSI: %d | Filtered RSSI: %d -> Dist: %.2f\n",
+      nodeId, rssi, filteredRSSI, nodeState.distances[nodeId]);
   }
 }
 
