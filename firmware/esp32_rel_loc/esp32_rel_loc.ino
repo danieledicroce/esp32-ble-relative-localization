@@ -11,6 +11,8 @@
 #define PROCESS_NOISE 0.5       // Q, idem
 #define MEASUREMENT_NOISE 10.0  // R, idem
 
+#define CALIBRATION_MODE false
+
 struct KalmanState {
   float estimate = 0.0;
   float errorCovariance = 1.0;
@@ -65,8 +67,12 @@ void handleRSSIReading(uint8_t nodeId, int rssi) {
   if (nodeId < 3) {
     int filteredRSSI = kalmanFilterRSSI(nodeState.fixedNodes.kalman[nodeId], rssi);
     nodeState.fixedNodes.distances[nodeId] = distanceFromRSSI(filteredRSSI);
-    /* Serial.printf("[Node %d] Raw RSSI: %d | Filtered RSSI: %d -> Dist: %.2f\n",
-      nodeId, rssi, filteredRSSI, nodeState.fixedNodes.distances[nodeId]); */
+
+    if (CALIBRATION_MODE) {
+      Serial.printf("[Node %d] Raw RSSI: %d | Filtered RSSI: %d -> Dist: %.2f\n",
+      nodeId, rssi, filteredRSSI, nodeState.fixedNodes.distances[nodeId]);
+    }
+
   } else if (nodeId == EXTERNAL_ID) {
     int filteredRSSI = kalmanFilterRSSI(nodeState.device.kalman, rssi);
     nodeState.device.distance = distanceFromRSSI(filteredRSSI);
@@ -230,5 +236,7 @@ void loop() {
   computePositions();
   computeDevicePosition();
   updateAdvertisingPayload();
-  printPositionsAsJSON();
+  if (!CALIBRATION_MODE) {
+    printPositionsAsJSON();
+  }
 }
