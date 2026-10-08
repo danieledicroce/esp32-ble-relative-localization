@@ -136,14 +136,11 @@ Settings that must be in place (from the thesis, Chapter 3):
 1. Place the three boards at the same height from the ground, in direct line of sight and without obstacles in between. The nodes must form a non-aligned (triangular) geometric arrangement, a requirement for a correct 2D trilateration of the target and to avoid geometric ambiguities. The mutual distance between the boards must fall within the reliable operating range of BLE (recommended within 5–10 m; beyond this threshold, signal attenuation and noise significantly degrade the RSSI estimate).
 2. Power the three boards (the power-on order does not matter; the nodes autonomously start the advertising and reception routines).
 3. Connect the Node 0 board to the computer via USB cable and identify the assigned serial port:
-   - **Linux:** check the available devices by running:
+   - **Linux / macOS:** check the available devices by running:
      ```bash
      ls /dev/ttyUSB* /dev/ttyACM*
      ```
      *(usually identified as `/dev/ttyUSB0` or `/dev/ttyACM0`)*
-   - **macOS:** check the available devices by running:
-     ```
-     ```
    - **Windows:** open **Device Manager** and look at the **Ports (COM & LPT)** section to find the assigned identifier (e.g. `COM3` or `COM4`).
 4. Open `python/visualize_positions.py` and check that the `SERIAL_PORT` variable matches the port identified in the previous step.
 5. Run the script inside the virtual environment:
