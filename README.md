@@ -53,7 +53,7 @@ The versions listed are those with which the system was developed and tested. Th
    - **Linux / macOS:**
      ```bash
      cd python
-     python -m venv .venv
+     python3 -m venv .venv
      source .venv/bin/activate
      pip install pyserial matplotlib
      ```
@@ -95,19 +95,23 @@ The model parameters are located at the beginning of the sketch:
 | `MEASUREMENT_NOISE` | 10.0 | measurement noise $R$ (to be recalibrated) |
 
 ## 5. Calibration of RSSI at 1 m and Path Loss Exponent
-
+ 
 The values in the table are valid for the thesis environment. When the environment changes, they must be derived again.
-
+ 
 1. Set `#define CALIBRATION_MODE true` at the beginning of the sketch and upload it again to the board connected to the computer. In this mode the board prints on the serial port the raw RSSI values of the packets received from the other fixed nodes, and the JSON output of the positions is disabled, so the Python script receives no data as long as the mode remains active.
    Open the Arduino IDE Serial Monitor at **115200 baud**: each packet received from another fixed node produces a line like the following (example values):
-   ```
+```
    [Node 1] Raw RSSI: -56 | Filtered RSSI: -56 -> Dist: 1.00
-   ```
+```
 2. Place two boards 1 m apart, in direct line of sight and without obstacles. To avoid errors and minimize uncontrolled variables, place both boards at the same height from the ground; the mutual orientation is instead secondary, since the PCB antennas of the ESP32-WROOM-32 are quasi-omnidirectional. Finally, collect at least 10 samples.
 3. Assuming a Gaussian distribution of the errors, compute the mean of the collected `Raw RSSI` values: this is the value of `RSSI_AT_1M`.
 4. Repeat the measurement at a second known distance $d_1$ (in the thesis 5 m, with a mean RSSI of -77 dBm) and derive the exponent with the formula
    $n = \dfrac{RSSI(d_0) - RSSI(d_1)}{10 \log_{10}(d_1 / d_0)}$ where $d_0 = 1$ m.
-5. Update the two constants in the sketch, set `CALIBRATION_MODE` back to `false` and upload it to **all three** boards.
+5. Using the same `Raw RSSI` samples collected at 1 m, compute the sample variance: it is the measurement noise `MEASUREMENT_NOISE` ($R$, in dBm²), with
+   $R = \dfrac{1}{N-1}\sum_{k=1}^{N}\left(RSSI_k - \overline{RSSI}\right)^2$ where $N$ is the number of samples and $\overline{RSSI}$ their mean.
+6. Set the process noise `PROCESS_NOISE` ($Q$). It cannot be derived from static measurements, because it depends on how fast the monitored positions change: use 0.5 for a static system and 2 for a dynamic one.
+7. Update the four constants in the sketch (`RSSI_AT_1M`, `PATH_LOSS_EXPONENT`, `MEASUREMENT_NOISE`, `PROCESS_NOISE`), set `CALIBRATION_MODE` back to `false` and upload it to **all three** boards.
+
 
 ## 6. Smartphone Configuration as an External Device (Optional)
 
