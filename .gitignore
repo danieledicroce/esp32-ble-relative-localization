@@ -8,13 +8,6 @@ build/
 *.build/
 *.upload/
 
-# --- PlatformIO ---
-.pio/
-.pioenvs/
-.piolibdeps/
-.clang_complete
-.gcc-flags.json
-
 # --- Python ---
 .venv/
 **/__pycache__/
@@ -22,7 +15,6 @@ build/
 *$py.class
 *.egg-info/
 dist/
-build/
 
 # --- Editor & IDE metadata ---
 .vscode/*
@@ -31,8 +23,6 @@ build/
 !.vscode/launch.json
 !.vscode/extensions.json
 .idea/
-*.sublime-project
-*.sublime-workspace
 
 # --- OS-specific files ---
 .DS_Store
